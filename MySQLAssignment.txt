@@ -1,0 +1,60 @@
+mysql> create table Customer(customer_Id int(10) primary key,DOB date,Gender char(1),city_code int(10));
+
+mysql> create table prod_cat_info(prod_cat_code int(10) ,prod_cat varchar(30),prod_sub_cat_code int(10),prod_subcat varchar(50));
+
+mysql> create table Transactions(transaction_id int(20) ,cust_id int(10),tran_date date,prod_subcat_code int(10),prod_cat_code int(10),Qty int(10),Rate int(10),Tax double(20,8),total_amt double(20,8),Store_type varchar(10));
+
+mysql> LOAD DATA LOCAL INFILE "/home/cloudera/Jyoti/MySqlAssignment/Customer.csv" INTO TABLE Customer FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' IGNORE 1 LINES (customer_Id, @datevar, Gender,city_code) set DOB = STR_TO_DATE(@datevar,'%Y-%m-%d');
+
+mysql> LOAD DATA LOCAL INFILE "/home/cloudera/Jyoti/MySqlAssignment/prod_cat_info.csv" INTO TABLE prod_cat_info  FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' IGNORE 1 LINES (prod_cat_code,prod_cat,prod_sub_cat_code,prod_subcat);
+
+mysql> LOAD DATA LOCAL INFILE "/home/cloudera/Jyoti/MySqlAssignment/Transactions.csv" INTO TABLE Transactions FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' IGNORE 1 LINES (transaction_id,cust_id,@datevar, prod_subcat_code,prod_cat_code,Qty,Rate,Tax,total_amt,Store_type) set tran_date = STR_TO_DATE(@datevar,'%Y-%m-%d');
+
+
+1. 
+mysql> select (select count(*) from Customer) as customer_count,(select count(*) from prod_cat_info) as prod_cat_info_count,(select count(*) from Transactions) as transactions_count;
+
+2.
+mysql> select min(tran_date),max(tran_date) from Transactions;
+
+3.
+mysql> select count(*) from Transactions where Qty<0;
+
+4.
+mysql> select (select count(*) from Customer where Gender='M') as male_count,(select count(*) from Customer where Gender='F') as female_count;
+
+5.
+mysql> select city_code, count(*) as "Number Of Customers"  from Customer group by city_code; 
+
+6.
+mysql> select prod_cat from prod_cat_info where prod_subcat like "%DIY%";
+
+7.
+mysql> select count(distinct(prod_subcat)) from prod_cat_info where prod_cat like "Books";
+
+8.
+mysql> select max(Qty) from Transactions;
+
+9.
+mysql> select min(Qty) from Transactions;
+
+10.
+mysql> select distinct(Store_type) from Transactions where Qty=(select max(Qty) from Transactions) and total_amt=(select max(total_amt) from Transactions);
+
+11.
+mysql> select min(total_amt) from Transactions where Qty=(select min(Qty) from Transactions);
+
+12.
+mysql> select * from Transactions group by cust_id having  count(*)>10 and Qty>=0;
+
+13.
+mysql> select sum(b.total_amt) total_revenue from prod_cat_info a inner join Transactions b on a.prod_cat_code=b.prod_cat_code where a.prod_cat in ('Electronics','Clothing') and Store_type like '%Flagship%';
+
+14.
+mysql> select sum(a.total_amt) from Customer c join Transactions a on (a.cust_id = c.customer_id)  join prod_cat_info b on (a.prod_cat_code = b.prod_cat_code and a.prod_subcat_code = b.prod_sub_cat_code)   where b.prod_cat in ('Electronics') and c.gender = 'M';
+
+15.
+mysql> select b.prod_subcat,sum(abs(a.total_amt)) as total,sum(case when a.Qty >0 then a.total_amt else 0 end) as sales_amt,sum(case when a.Qty <0 then abs(a.total_amt) else 0 end) as return_amt,sum(case when a.Qty >0 then a.total_amt else 0 end)/sum(abs(a.total_amt))*100 as sales_perc,sum(case when a.Qty <0 then abs(a.total_amt) else 0 end)/sum(abs(a.total_amt))*100 as return_perc from Transactions a join prod_cat_info b on (a.prod_cat_code = b.prod_cat_code and a.prod_subcat_code = b.prod_sub_cat_code) group by b.prod_subcat order by sales_amt desc limit 5;
+
+
+
