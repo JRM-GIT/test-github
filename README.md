@@ -1,2 +1,2 @@
 # test-github
-For testing github operations
+For testing github operations and learning
