@@ -58,3 +58,4 @@ mysql> select b.prod_subcat,sum(abs(a.total_amt)) as total,sum(case when a.Qty >
 
 
 
+16.
